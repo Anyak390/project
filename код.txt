@@ -1,0 +1,453 @@
+/*двусвязный список*/
+#include <iostream>;
+
+using namespace std;
+
+class Node {
+public:
+	int data;
+	Node* prev;
+	Node* next;
+
+	Node(int data) {
+		this->data = data;
+		this->prev = NULL;
+		this->next = NULL;
+	}
+};
+
+class LinkedList {
+public:
+	Node* head;
+	Node* tail;
+
+	LinkedList() {
+		head = NULL;
+		tail = NULL;
+	}
+
+	~LinkedList() {
+		while (head != NULL)
+			delete_front();
+	}
+
+	Node* add_front(int data) {
+		Node* ptr = new Node(data);
+		ptr->next = head;
+		if (head != NULL)
+			head->prev = ptr;
+		if (tail == NULL)
+			tail = ptr;
+		head = ptr;
+		return ptr;
+	}
+
+	Node* add_back(int data) {
+		Node* ptr = new Node(data);
+		ptr->prev = tail;
+		if (tail != NULL)
+			tail->next = ptr;
+		if (head == NULL)
+			head = ptr;
+		tail = ptr;
+		return ptr;
+	}
+
+	void delete_front() {
+		if (head == NULL)
+			return;
+
+		Node* ptr = head->next;
+		if (ptr != NULL)
+			ptr->prev = NULL;
+		else
+			tail = NULL;
+
+		delete head;
+		head = ptr;
+	}
+
+	void delete_back() {
+		if (tail == NULL)
+			return;
+
+		Node* ptr = tail->prev;
+		if (ptr != NULL)
+			ptr->next = NULL;
+		else
+			head = NULL;
+
+		delete tail;
+		tail = ptr;
+	}
+
+	Node* get_by_index(int index) {
+		Node* ptr = head;
+		int n = 0;
+
+		while (n != index) {
+			if (ptr == NULL)
+				return ptr;
+			ptr = ptr->next;
+			n++;
+		}
+		return ptr;
+	}
+
+	Node* operator [](int index) {
+		return get_by_index(index);
+	}
+
+	Node* add_by_index(int index, int data) {
+		Node* right = get_by_index(index);
+		if (right == NULL)
+			return add_back(data);
+		Node* left = right->prev;
+		if (left == NULL)
+			return add_front(data);
+
+		Node* ptr = new Node(data);
+		ptr->prev = left;
+		ptr->next = right;
+		left->next = ptr;
+		right->prev = ptr;
+
+		return ptr;
+	}
+
+	void delete_by_index(int index) {
+		Node* ptr = get_by_index(index);
+		if (ptr == NULL)
+			return;
+		if (ptr->prev == NULL) {
+			delete_front();
+			return;
+		}
+
+		if (ptr->next == NULL) {
+			delete_back();
+			return;
+		}
+
+		Node* left = ptr->prev;
+		Node* right = ptr->next;
+		left->next = right;
+		right->prev = left;
+
+		delete ptr;
+	}
+};
+
+int main() {
+	LinkedList lst;
+	lst.add_back(1);
+	lst.add_front(2);
+	lst.add_back(3);
+	lst.add_by_index(2, 4);
+	lst.add_by_index(3, 5);
+
+	for (Node* ptr = lst.head; ptr != NULL; ptr = ptr->next)
+		cout << ptr->data << "\t";
+	cout << endl;
+
+	lst.delete_front();
+	lst.delete_back();
+	cout << lst[2]->data << endl;
+	lst.delete_by_index(2);
+
+	for (Node* ptr = lst.head; ptr != NULL; ptr = ptr->next)
+		cout << ptr->data << "\t";
+	cout << endl;
+
+	return 0;
+}
+
+/*динамический массив*/
+#include <iostream>
+
+using namespace std;
+
+int main()
+{
+	setlocale(0, "Ru");
+	int capacity = 3;
+	int* arr = new int[capacity];
+
+	int size = 0;
+
+	while (true) {
+		if (size < capacity) {
+			cout << endl;
+			cout << "Введите число: ";
+			cin >> arr[size];
+			size++;
+			if (size == capacity) {
+				cout << "Переполнение массива!";
+				capacity *= 2;
+				int* arr2 = new int[capacity];
+
+				for (int i = 0; i < size; i++) {
+					arr2[i] = arr[i];
+				}
+				delete[] arr;
+				arr = arr2;
+				cout << endl;
+				for (int i = 0; i < size; i++) {
+					cout << arr[i] << " ";
+				}
+			}
+		}
+	}
+
+	delete[] arr;
+
+	return 0;
+}
+
+/*стек + алгоритм сортировочной станции*/
+#include <iostream>
+#include <exception>
+#include <string>
+#include <cmath>
+#include <sstream>
+
+using namespace std;
+
+template <typename T>
+struct stack {
+public:
+	stack () : _top (NULL), _size (0)
+	{}
+
+	struct Node
+	{
+		Node (T el) : data (el)
+		{}
+		Node(T el, Node* node) : data(el), next (node)
+		{}
+		Node* next;
+		T data;
+	};
+
+	void push(const T);
+	void pop();
+	T& top();
+	int size();
+	bool empty();
+
+private:
+	Node* _top;
+	int _size;
+};
+
+template <typename T>
+void stack<T>::push(const T el)
+{
+	try
+	{
+		if (_top != NULL)
+		{
+			Node* temp = new Node(el, _top);
+			_top = temp;
+		}
+		else
+		{
+			_top = new Node(el);
+		}
+		_size++;
+	}
+	catch (bad_alloc)
+	{
+		cout << "bad_alloc" << endl;
+	}
+}
+
+template <typename T>
+void stack<T>::pop()
+{
+	try
+	{
+		if (_top == NULL)
+			throw out_of_range("Error: Out_of_range");
+
+		Node* temp = _top;
+		_top = _top->next;
+		delete temp;
+		_size--;
+	}
+	catch (exception& e)
+	{
+		cout << e.what() << endl;
+	}
+}
+
+template <typename T>
+T& stack<T>::top()
+{
+	try
+	{
+		if (_top == NULL)
+			throw out_of_range("Error: stack is empty");
+
+		return _top->data;
+	}
+	catch (exception& e)
+	{
+		cout << e.what() << endl;
+	}
+}
+
+template <typename T>
+int stack<T>::size()
+{
+	return _size;
+}
+
+template <typename T>
+bool stack<T>::empty()
+{
+	return _size == 0 ? true : false;
+}
+
+bool isDigit(char c) {
+	return c >= '0' && c <= '9';
+}
+
+bool isOperator(char c) {
+	return c == '+' || c == '-' || c == '*' || c == '/' || c == '^' || c == 's' || c == 'c';
+}
+
+int getPriority(char op) {
+	if (op == '+' || op == '-') return 1;
+	if (op == '*' || op == '/') return 2;
+	if (op == '^') return 3;
+	if (op == 's' || op == 'c') return 4;
+	return 0;
+}
+
+double calculate(double a, double b, char op) {
+	switch (op) {
+	case '+': return a + b;
+	case '-': return a - b;
+	case '*': return a * b;
+	case '/': return a / b;
+	case '^': return pow(a, b);
+	case 's': return sin(a);
+	case 'c': return cos(a);
+	default: return 0;
+	}
+}
+
+double str_to_double(string str) {
+	stringstream ss(str);
+	double num;
+	ss >> num;
+	return num;
+}
+
+double analyze(string expression) {
+	stack<double> numbers;
+	stack<char> operators;
+
+	stringstream ss(expression);
+	string token;
+	while (getline(ss, token, ' ')) {
+		if (isDigit(token[0])) {
+			numbers.push(str_to_double(token));
+		}
+		else if (isOperator(token[0])) {
+			if (token[0] == 's' || token[0] == 'c') {
+				if (token.length() == 3 && token[1] == 'i' && token[2] == 'n') {
+					if (isDigit(token[3])) {
+						token[0] = token[3];
+						token[3] = ' ';
+						operators.push('s');
+						numbers.push(str_to_double(token));
+						double a = numbers.top();
+						numbers.pop();
+						char op = operators.top();
+						operators.pop();
+						numbers.push(calculate(a, 0, op));
+					}
+				}
+				else if (token.length() == 3 && token[1] == 'o' && token[2] == 's') {
+					if (isDigit(token[3])) {
+						token[0] = token[3];
+						token[3] = ' ';
+						operators.push('c');
+						numbers.push(str_to_double(token));
+						double a = numbers.top();
+						numbers.pop();
+						char op = operators.top();
+						operators.pop();
+						numbers.push(calculate(a, 0, op));
+					}
+				}
+				else {
+					throw runtime_error("Неверный синтаксис: sin или cos");
+				}
+			}
+			else {
+				while (!operators.empty() && getPriority(operators.top()) >= getPriority(token[0])) {
+					double b = numbers.top(); 
+					numbers.pop();
+					double a = numbers.top(); 
+					numbers.pop();
+					char op = operators.top(); 
+					operators.pop();
+					numbers.push(calculate(a, b, op));
+				}
+				operators.push(token[0]);
+			}
+		}
+		else if (token[0] == '(') {
+			operators.push(token[0]);
+		}
+		else if (token[0] == ')') {
+			while (operators.top() != '(') {
+				double b = numbers.top(); 
+				numbers.pop();
+				double a = numbers.top(); 
+				numbers.pop();
+				char op = operators.top(); 
+				operators.pop();
+				numbers.push(calculate(a, b, op));
+			}
+			operators.pop();
+		}
+		else if (token.empty()) {
+			continue;
+		}
+		else {
+			throw runtime_error("Неверный символ: " + token);
+		}
+	}
+	while (!operators.empty()) {
+		double b = numbers.top(); 
+		numbers.pop();
+		double a = numbers.top(); 
+		numbers.pop();
+		char op = operators.top(); 
+		operators.pop();
+		numbers.push(calculate(a, b, op));
+	}
+
+	return numbers.top();
+}
+
+int main() {
+	setlocale(0, "Ru");
+	string expression;
+	cout << "Введите выражение: ";
+	getline(cin, expression);
+
+	try {
+		double result = analyze(expression);
+		cout << "Результат: " << result << endl;
+	}
+	catch (const runtime_error& e) {
+		cerr << "Ошибка: " << e.what() << endl;
+	}
+
+	return 0;
+}
